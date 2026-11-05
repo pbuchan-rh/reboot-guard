@@ -67,8 +67,8 @@ through `/run`. Preliminary:
 
 ```dockerfile
 FROM registry.redhat.io/rhel10/rhel-bootc:latest
-COPY reboot-guard-2.0.0-1.noarch.rpm /tmp/
-RUN dnf -y install /tmp/reboot-guard-2.0.0-1.noarch.rpm && rm -f /tmp/*.rpm && dnf clean all
+COPY reboot-guard-2.0.1-1.noarch.rpm /tmp/
+RUN dnf -y install /tmp/reboot-guard-2.0.1-1.noarch.rpm && rm -f /tmp/*.rpm && dnf clean all
 # or, without the RPM:
 COPY files/etc/systemd/system/ /usr/lib/systemd/system/
 COPY files/etc/systemd/system.conf.d/ /usr/lib/systemd/system.conf.d/

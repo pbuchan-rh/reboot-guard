@@ -16,7 +16,7 @@
 %{!?rel: %define rel 1}
 
 Name:           reboot-guard
-Version:        2.0.0
+Version:        2.0.1
 Release:        %{rel}
 Summary:        Block accidental reboot and shutdown
 License:        MIT
@@ -106,6 +106,10 @@ exit 0
 /usr/sbin/reboot-guard
 
 %changelog
+* Thu Nov 05 2026 Peter Buchan <pbuchan@redhat.com> - 2.0.1-1
+- 2.0.1: drop dead README links from the KB 1580343 messages (helper, install
+  scriptlet); updated README; no guard changes
+
 * Thu Nov 05 2026 Peter Buchan <pbuchan@redhat.com> - 2.0.0-1
 - 2.0.0: guard drop-ins in /usr/lib, Ctrl-Alt-Del mask in /etc, helper in /usr/sbin;
   allow-once needs --reason

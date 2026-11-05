@@ -21,9 +21,9 @@ Pick one per host; do not mix the RPM and copied files.
 ### RPM
 ```sh
 # noarch, RHEL 7-10. Drop-ins in /usr/lib; rpm -V shows edits. Build it yourself: make rpm sums
-u=https://github.com/pbuchan-rh/reboot-guard/releases/download/v2.0.0
-curl -fsSL -O $u/reboot-guard-2.0.0-1.noarch.rpm -O $u/SHA256SUMS && sha256sum -c --ignore-missing SHA256SUMS
-sudo dnf install ./reboot-guard-2.0.0-1.noarch.rpm   # RHEL 7: yum; hash with: grep noarch SHA256SUMS | sha256sum -c
+u=https://github.com/pbuchan-rh/reboot-guard/releases/download/v2.0.1
+curl -fsSL -O $u/reboot-guard-2.0.1-1.noarch.rpm -O $u/SHA256SUMS && sha256sum -c --ignore-missing SHA256SUMS
+sudo dnf install ./reboot-guard-2.0.1-1.noarch.rpm   # RHEL 7: yum; hash with: grep noarch SHA256SUMS | sha256sum -c
 # localpkg_gpgcheck=1 (STIG): add --nogpgcheck; the RPM is unsigned, the hash check is the integrity check
 ```
 ### Helper only

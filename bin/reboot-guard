@@ -7,7 +7,7 @@
 # Other commands exit: 0 ok, 1 refused, 2 bad usage, 3 not root.
 
 set -u
-VERSION=2.0.0
+VERSION=2.0.1
 # Targets, plus the services they pull in: `systemctl start systemd-reboot.service` skips the target (found on RHEL 10).
 # exit.target: `systemctl exit` powers off a VM/host (systemd 257, found on RHEL 10).
 # Pulled in as a dependency of an allowed target, a guarded service still starts (RefuseManualStart = manual only).

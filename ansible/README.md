@@ -15,7 +15,7 @@ Plain `ansible-core` 2.14+, no collections. RHEL 7 targets need ansible-core 2.1
 ```sh
 cd ansible && cp inventory.example inventory      # edit
 ansible-playbook -i inventory install.yml -e target=guarded
-ansible-playbook -i inventory install.yml -e reboot_guard_method=rpm -e reboot_guard_rpm_src=/path/reboot-guard-2.0.0-1.noarch.rpm
+ansible-playbook -i inventory install.yml -e reboot_guard_method=rpm -e reboot_guard_rpm_src=/path/reboot-guard-2.0.1-1.noarch.rpm
 ansible-playbook -i inventory patch-window.yml -e target=guarded -e "patch_reason='CHG0012345'" -e patch_update=true
 ```
 
