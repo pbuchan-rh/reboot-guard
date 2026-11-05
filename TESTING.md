@@ -9,8 +9,9 @@ Package mode on RHEL 7.9, 8.10, 9.6 and 10.2. Image mode: TBD ([DESIGN.md](DESIG
 - **gap**: not blocked (see [Known gaps](README.md#known-gaps))
 - **n/a**: not on that release · **-**: not tested
 
-Matrix, RPM and patch-window rows: v2.0.0 RPM, 2026-11-05. KB 1580343 migration: re-tested on 10.2 with the current
-role. Other rows: earlier runs, same guard files.
+v2.0.1 RPM, 2026-11-05: upgrade from 2.0.0 (`sha256sum -c`, `rpm -V`) and `tests/matrix.sh` on all four;
+`--destructive` and `patch-window.yml` on 10.2. Other matrix, RPM and patch-window rows: v2.0.0 RPM, same day.
+KB 1580343 migration: re-tested on 10.2 with the current role. Other rows: earlier runs, same guard files.
 
 | check | 7.9 | 8.10 | 9.6 | 10.2 |
 |---|---|---|---|---|
@@ -33,6 +34,7 @@ role. Other rows: earlier runs, same guard files.
 | `kill -s SIGRTMIN+5 1` | - | - | - | gap |
 | RPM: `sha256sum -c` (README form), helper uninstall -> install, `rpm -V` clean | pass | pass | pass | pass |
 | RPM upgrade / reinstall / erase | pass | pass | pass | pass |
+| RPM upgrade keeps the Ctrl-Alt-Del mask and original-link backup (7.9: no /etc link to back up) | pass | pass | pass | pass |
 | RPM erase restores original Ctrl-Alt-Del link | pass | pass | pass | pass |
 | role: install (files, RPM), re-run `changed=0`, uninstall | pass | pass | pass | pass |
 | role: KB 1580343 migration (refuses without the flag) | pass | pass | pass | pass |
