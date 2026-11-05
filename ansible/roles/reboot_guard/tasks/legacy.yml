@@ -21,12 +21,3 @@
     state: absent
   loop: [start-reboot-guard.service, reboot-guard.service]
   notify: Reboot-guard daemon-reload
-
-# The KB kit's rguard-install.sh appends " REBOOT-GUARD ACTIVE " to these. Only that exact line goes.
-- name: Remove the KB 1580343 banner lines
-  ansible.builtin.lineinfile:
-    path: "{{ item }}"
-    regexp: '^ REBOOT-GUARD ACTIVE $'
-    state: absent
-  loop: [/etc/issue, /etc/issue.net, /etc/motd]
-  notify: Reboot-guard restorecon banners

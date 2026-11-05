@@ -19,8 +19,8 @@ reboot_guard_rpm_src: ""
 # allow_once: why (logged to the journal with the user). Required.
 reboot_guard_reason: ""
 
-# Install refuses while the KB 1580343 guard (reboot-guard.service) is present. true = disable and remove it,
-# and its " REBOOT-GUARD ACTIVE " lines in /etc/issue, /etc/issue.net, /etc/motd.
+# Install refuses while the KB 1580343 guard (reboot-guard.service) is present. true = disable and remove
+# its two services (reboot-guard.service, start-reboot-guard.service).
 reboot_guard_migrate_legacy: false
 
 # Every unit the guard covers. Units missing on a release (exit/soft-reboot on RHEL 7) are harmless.

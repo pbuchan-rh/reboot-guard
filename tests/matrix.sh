@@ -146,9 +146,6 @@ remote_guarded() {
             && r "helper: no old /usr/local/sbin copy" FAIL "$h and /usr/local/sbin/reboot-guard" || r "helper: no old /usr/local/sbin copy" PASS "$h"
         cli_checks "$h"
     else r "status: helper rc 0" SKIP "no helper installed"; fi
-    local b; b=$(grep -lx ' REBOOT-GUARD ACTIVE ' /etc/issue /etc/issue.net /etc/motd 2>/dev/null | tr '\n' ' ')
-    if kb_enabled; then r "no KB 1580343 banner lines" SKIP "KB guard still enabled"
-    else [ -z "$b" ] && r "no KB 1580343 banner lines" PASS "issue, issue.net, motd" || r "no KB 1580343 banner lines" FAIL "in $b"; fi
 
     # Ctrl-Alt-Del
     local cad; cad=$(systemctl is-enabled ctrl-alt-del.target 2>/dev/null)

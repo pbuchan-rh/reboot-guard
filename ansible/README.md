@@ -27,7 +27,7 @@ ansible-playbook -i inventory patch-window.yml -e target=guarded -e "patch_reaso
 | `reboot_guard_method` | `files` | `files`: copy `files/` to `/etc`, helper to `/usr/sbin`; `rpm`: install the package. Both remove an old `/usr/local/sbin` helper |
 | `reboot_guard_rpm_src` | `""` | RPM on the controller to copy and install; empty = `reboot-guard` from the host's repos |
 | `reboot_guard_reason` | `""` | required for `allow_once`; logged with `[ansible]` or `[AAP job N]` |
-| `reboot_guard_migrate_legacy` | `false` | the KB 1580343 guard makes install fail; `true` removes its two services and its ` REBOOT-GUARD ACTIVE ` lines in issue, issue.net, motd |
+| `reboot_guard_migrate_legacy` | `false` | the KB 1580343 guard makes install fail; `true` disables and removes its two services |
 | `reboot_guard_src` / `reboot_guard_helper_src` | this repo's `files/` and `bin/reboot-guard` | change if the role is copied out of the repo |
 
 Every action sets `reboot_guard_state` (`guarded`, `unguarded`, `allow_once`) and `reboot_guard_status_msg`.
