@@ -54,6 +54,7 @@ Every action sets `reboot_guard_state` (`guarded`, `unguarded`, `allow_once`) an
   `patch_update=true`. A failure after allow-once cancels the allow and fails the host (guarded, not rebooted);
   `-e patch_test_fail_after_allow=true` forces one to test that.
 - Image mode: `install` only reports, `uninstall` fails (the guard belongs in the Containerfile); `allow_once`,
-  `cancel`, `status` work. TBD, see [DESIGN.md](../DESIGN.md#image-mode-tbd).
+  `cancel`, `status` and `patch-window.yml` with `patch_update=false` work (stage with `bootc upgrade` first). See
+  [DESIGN.md](../DESIGN.md#image-mode).
 - All tasks run on the managed host. If you add a `delegate_to: localhost` task, set
   `vars: {ansible_connection: local}` on it.
