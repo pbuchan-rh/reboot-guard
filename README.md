@@ -81,18 +81,8 @@ sudo systemctl daemon-reload && sudo systemctl daemon-reexec
 ## Automation
 
 - `ansible.builtin.reboot` on a guarded host fails only at `reboot_timeout` (600 s). Check status first.
-- `ansible/` role: install (files or RPM), uninstall, status, allow-once, KB 1580343 migration, patch-window play.
+- `ansible/` role: install (files or RPM), uninstall, status, allow-once, patch-window play.
 - `tests/matrix.sh host` checks a host over ssh. See [ansible/README.md](ansible/README.md).
-
-## Migrating from [KB 1580343](https://access.redhat.com/solutions/1580343)
-
-The KB "Option 2" guard also blocks allow-once reboots. Remove it (role: `-e reboot_guard_migrate_legacy=true`):
-
-```sh
-sudo systemctl disable --now reboot-guard start-reboot-guard
-sudo rm -f /etc/systemd/system/{,start-}reboot-guard.service && sudo systemctl daemon-reload
-sudo sed -i '/^ REBOOT-GUARD ACTIVE $/d' /etc/issue /etc/issue.net /etc/motd     # its banner lines
-```
 
 ## License and credits
 
