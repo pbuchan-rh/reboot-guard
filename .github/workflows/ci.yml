@@ -1,0 +1,22 @@
+name: ci
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install linters
+        run: pip install shellcheck-py==0.11.0.1 ansible-lint==26.10.1
+      - name: bash -n
+        run: for f in bin/reboot-guard tests/*.sh; do bash -n "$f"; done
+      - name: shellcheck
+        run: shellcheck bin/reboot-guard tests/*.sh
+      - name: make check
+        run: make check
+      - name: ansible-lint
+        run: ansible-lint --profile production ansible/

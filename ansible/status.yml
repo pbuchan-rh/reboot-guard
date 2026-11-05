@@ -1,0 +1,9 @@
+---
+- name: Reboot-guard status
+  hosts: "{{ target | default('all') }}"
+  become: true
+  gather_facts: false
+  roles:
+    - role: reboot_guard
+      vars:
+        reboot_guard_action: status

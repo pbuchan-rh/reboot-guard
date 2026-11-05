@@ -1,0 +1,39 @@
+---
+# What the role does: install | uninstall | allow_once | cancel | status
+reboot_guard_action: install
+
+# install method: files (copy files/ to /etc, helper to /usr/sbin) or rpm
+reboot_guard_method: files
+
+# Where files/ and bin/ of this repo are on the controller (default: this checkout).
+reboot_guard_src: "{{ role_path }}/../../../files"
+reboot_guard_helper_src: "{{ role_path }}/../../../bin/reboot-guard"
+reboot_guard_helper_dest: /usr/sbin/reboot-guard
+# Older installs put the helper here (not in sudo's secure_path); install and uninstall remove it.
+reboot_guard_helper_old: /usr/local/sbin/reboot-guard
+
+# rpm method: a local RPM on the controller to copy and install. Empty = install "reboot-guard" from the
+# host's configured repositories (e.g. Satellite).
+reboot_guard_rpm_src: ""
+
+# allow_once: why (logged to the journal with the user). Required.
+reboot_guard_reason: ""
+
+# Install refuses while the KB 1580343 guard (reboot-guard.service) is present. true = disable and remove it,
+# and its " REBOOT-GUARD ACTIVE " lines in /etc/issue, /etc/issue.net, /etc/motd.
+reboot_guard_migrate_legacy: false
+
+# Every unit the guard covers. Units missing on a release (exit/soft-reboot on RHEL 7) are harmless.
+reboot_guard_units:
+  - reboot.target
+  - poweroff.target
+  - halt.target
+  - kexec.target
+  - soft-reboot.target
+  - exit.target
+  - systemd-reboot.service
+  - systemd-poweroff.service
+  - systemd-halt.service
+  - systemd-kexec.service
+  - systemd-soft-reboot.service
+  - systemd-exit.service

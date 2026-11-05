@@ -1,0 +1,102 @@
+---
+- name: Image mode (bootc) - cannot uninstall on the host
+  ansible.builtin.fail:
+    msg: "refused: guard is in the image (remove it in the Containerfile)"
+  when: reboot_guard_bootc | bool and reboot_guard_usr_guard | bool
+
+- name: Remove the RPM
+  ansible.builtin.package:
+    name: reboot-guard
+    state: absent
+  when: reboot_guard_rpm_installed | bool
+
+- name: Remove copied guard drop-ins
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ item }}.d/50-reboot-guard.conf"
+    state: absent
+  loop: "{{ reboot_guard_units }}"
+  notify: Reboot-guard daemon-reload
+
+- name: Remove pending allow-once drop-ins
+  ansible.builtin.shell: |
+    n=0
+    for f in /run/systemd/system/*.d/99-reboot-guard-allow.conf; do
+      [ -e "$f" ] || continue
+      rm -f "$f"; n=$((n + 1))
+    done
+    echo "$n"
+  register: reboot_guard_allow_rm
+  changed_when: reboot_guard_allow_rm.stdout != '0'
+  notify: Reboot-guard daemon-reload
+
+# Only empty directories: an admin may keep their own drop-ins there.
+- name: Remove empty drop-in directories
+  ansible.builtin.shell: |
+    for u in {{ reboot_guard_units | join(' ') }}; do
+      for d in /etc/systemd/system/$u.d /run/systemd/system/$u.d; do
+        [ -d "$d" ] && rmdir "$d" 2>/dev/null && echo "removed $d"
+      done
+    done
+    exit 0
+  register: reboot_guard_rmdir
+  changed_when: reboot_guard_rmdir.stdout | length > 0
+
+- name: Remove CtrlAltDelBurstAction=none
+  ansible.builtin.file:
+    path: /etc/systemd/system.conf.d/50-reboot-guard.conf
+    state: absent
+  notify: Reboot-guard daemon-reexec
+
+- name: Remove system.conf.d if empty
+  ansible.builtin.command: rmdir /etc/systemd/system.conf.d
+  register: reboot_guard_rmdir_conf
+  changed_when: reboot_guard_rmdir_conf.rc == 0
+  failed_when: false
+
+- name: Current Ctrl-Alt-Del link and backup
+  ansible.builtin.stat:
+    path: "{{ item }}"
+    follow: false
+  loop:
+    - /etc/systemd/system/ctrl-alt-del.target
+    - /etc/systemd/system/ctrl-alt-del.target.reboot-guard-orig
+  register: reboot_guard_cad
+
+- name: Unmask Ctrl-Alt-Del (only the guard's /dev/null mask)
+  ansible.builtin.file:
+    path: /etc/systemd/system/ctrl-alt-del.target
+    state: absent
+  when: reboot_guard_cad.results[0].stat.lnk_source | default('') == '/dev/null'
+  notify: Reboot-guard daemon-reload
+
+- name: Restore the original ctrl-alt-del.target
+  ansible.builtin.command: mv /etc/systemd/system/ctrl-alt-del.target.reboot-guard-orig /etc/systemd/system/ctrl-alt-del.target
+  when:
+    - reboot_guard_cad.results[1].stat.exists
+    - (not reboot_guard_cad.results[0].stat.exists) or reboot_guard_cad.results[0].stat.lnk_source | default('') == '/dev/null'
+  changed_when: true
+  notify: Reboot-guard daemon-reload
+
+- name: Remove the helper
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ reboot_guard_helper_dest }}"
+    - "{{ reboot_guard_helper_old }}"
+
+- name: Log the uninstall
+  ansible.builtin.command: logger -t reboot-guard -- "uninstalled by ansible"
+  changed_when: false
+
+- name: Reload systemd now
+  ansible.builtin.meta: flush_handlers
+
+- name: The guard must be off
+  ansible.builtin.include_tasks: status.yml
+
+- name: Check
+  ansible.builtin.assert:
+    that: reboot_guard_state == 'unguarded'
+    fail_msg: "after uninstall: {{ reboot_guard_status_msg }}"
+    quiet: true

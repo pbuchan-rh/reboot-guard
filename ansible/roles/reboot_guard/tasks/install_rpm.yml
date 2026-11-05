@@ -1,0 +1,41 @@
+---
+# rpm_src already installed (rpm -q prints the file name without .rpm): skip copy/install/delete, so a re-run is
+# changed=0.
+- name: Is this exact RPM already installed
+  ansible.builtin.set_fact:
+    reboot_guard_rpm_same: >-
+      {{ reboot_guard_rpm_src | length > 0 and reboot_guard_rpm_installed | bool and
+         reboot_guard_rpmq.stdout | trim == (reboot_guard_rpm_src | basename | regex_replace('[.]rpm$', '')) }}
+
+- name: Copy the RPM
+  ansible.builtin.copy:
+    src: "{{ reboot_guard_rpm_src }}"
+    dest: "/var/tmp/{{ reboot_guard_rpm_src | basename }}"
+    mode: "0644"
+  when: reboot_guard_rpm_src | length > 0 and not reboot_guard_rpm_same | bool
+
+- name: Install the RPM (dnf)
+  ansible.builtin.dnf:
+    name: "{{ ('/var/tmp/' ~ (reboot_guard_rpm_src | basename)) if reboot_guard_rpm_src | length > 0 else 'reboot-guard' }}"
+    state: present
+    disable_gpg_check: "{{ reboot_guard_rpm_src | length > 0 }}"
+  when:
+    - ansible_facts.pkg_mgr | default('dnf') in ['dnf', 'dnf5']
+    - not reboot_guard_rpm_same | bool
+
+# ansible.builtin.yum is gone in ansible-core 2.17+ (redirects to dnf), but 2.17+ cannot manage RHEL 7 (Python 2.7)
+# anyway; on 2.14-2.16 this is the module that works there.
+- name: Install the RPM (yum, RHEL 7)
+  ansible.builtin.yum:  # noqa: fqcn[action-core]
+    name: "{{ ('/var/tmp/' ~ (reboot_guard_rpm_src | basename)) if reboot_guard_rpm_src | length > 0 else 'reboot-guard' }}"
+    state: present
+    disable_gpg_check: "{{ reboot_guard_rpm_src | length > 0 }}"
+  when:
+    - ansible_facts.pkg_mgr | default('dnf') == 'yum'
+    - not reboot_guard_rpm_same | bool
+
+- name: Remove the copied RPM
+  ansible.builtin.file:
+    path: "/var/tmp/{{ reboot_guard_rpm_src | basename }}"
+    state: absent
+  when: reboot_guard_rpm_src | length > 0 and not reboot_guard_rpm_same | bool

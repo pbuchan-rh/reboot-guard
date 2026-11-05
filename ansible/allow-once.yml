@@ -1,0 +1,10 @@
+---
+# ansible-playbook -i inventory allow-once.yml -e target=web01 -e "reboot_guard_reason='CHG0012345'"
+- name: Reboot-guard allow-once
+  hosts: "{{ target | default('all') }}"
+  become: true
+  gather_facts: false
+  roles:
+    - role: reboot_guard
+      vars:
+        reboot_guard_action: allow_once

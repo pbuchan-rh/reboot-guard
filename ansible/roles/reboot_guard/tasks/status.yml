@@ -1,0 +1,26 @@
+---
+# reboot-guard status: rc 0 GUARDED, 1 NOT GUARDED, 2 ALLOW-ONCE. Without the helper: RefuseManualStart of reboot.target.
+# Helper by full path: /usr/sbin (files, RPM), /usr/bin (image), or an older /usr/local/sbin copy.
+- name: Reboot-guard status
+  ansible.builtin.shell: |
+    set -o pipefail
+    for h in {{ reboot_guard_helper_dest }} /usr/bin/reboot-guard {{ reboot_guard_helper_old }}; do
+      [ -x "$h" ] && exec "$h" status
+    done
+    if [ -e /etc/systemd/system/shutdown.target.requires/reboot-guard.service ]; then echo "GUARDED by old KB 1580343 service"; exit 0; fi
+    v=$(systemctl show -p RefuseManualStart reboot.target | sed 's/.*=//')
+    [ "$v" = yes ] && { echo "GUARDED (no helper)"; exit 0; }
+    ls /run/systemd/system/reboot.target.d/99-reboot-guard-allow.conf >/dev/null 2>&1 && { echo "ALLOW-ONCE (no helper)"; exit 2; }
+    echo "NOT GUARDED"; exit 1
+  register: reboot_guard_status
+  changed_when: false
+  failed_when: reboot_guard_status.rc not in [0, 1, 2]
+
+- name: Set reboot_guard_state
+  ansible.builtin.set_fact:
+    reboot_guard_state: "{{ {0: 'guarded', 1: 'unguarded', 2: 'allow_once'}[reboot_guard_status.rc] }}"
+    reboot_guard_status_msg: "{{ reboot_guard_status.stdout }}"
+
+- name: Show status
+  ansible.builtin.debug:
+    msg: "{{ reboot_guard_status.stdout }}"

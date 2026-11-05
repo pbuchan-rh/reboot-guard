@@ -1,0 +1,10 @@
+---
+# Take back a pending allow-once before the reboot.
+- name: Reboot-guard cancel
+  hosts: "{{ target | default('all') }}"
+  become: true
+  gather_facts: false
+  roles:
+    - role: reboot_guard
+      vars:
+        reboot_guard_action: cancel

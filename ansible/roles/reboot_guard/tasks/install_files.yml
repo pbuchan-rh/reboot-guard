@@ -1,0 +1,70 @@
+---
+- name: Do not mix the copied files with the RPM
+  ansible.builtin.fail:
+    msg: "refused: RPM installed (use reboot_guard_method=rpm)"
+  when: reboot_guard_rpm_installed | bool
+
+- name: Drop-in directories
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ item }}.d"
+    state: directory
+    mode: "0755"
+  loop: "{{ reboot_guard_units }}"
+
+- name: Guard drop-ins (RefuseManualStart=yes)
+  ansible.builtin.copy:
+    src: "{{ reboot_guard_src }}/etc/systemd/system/{{ item }}.d/50-reboot-guard.conf"
+    dest: "/etc/systemd/system/{{ item }}.d/50-reboot-guard.conf"
+    mode: "0644"
+  loop: "{{ reboot_guard_units }}"
+  notify: Reboot-guard daemon-reload
+
+- name: Directory /etc/systemd/system.conf.d
+  ansible.builtin.file:
+    path: /etc/systemd/system.conf.d
+    state: directory
+    mode: "0755"
+
+- name: No forced reboot on Ctrl-Alt-Del burst (CtrlAltDelBurstAction=none)
+  ansible.builtin.copy:
+    src: "{{ reboot_guard_src }}/etc/systemd/system.conf.d/50-reboot-guard.conf"
+    dest: /etc/systemd/system.conf.d/50-reboot-guard.conf
+    mode: "0644"
+  notify: Reboot-guard daemon-reexec
+
+- name: Current Ctrl-Alt-Del link and backup
+  ansible.builtin.stat:
+    path: "{{ item }}"
+    follow: false
+  loop:
+    - /etc/systemd/system/ctrl-alt-del.target
+    - /etc/systemd/system/ctrl-alt-del.target.reboot-guard-orig
+  register: reboot_guard_cad
+
+# RHEL ships /etc/systemd/system/ctrl-alt-del.target -> reboot.target (reboot.target Alias=). Keep it (or an admin's
+# own mask) under the same backup name the helper uses, so either can uninstall.
+- name: Back up the existing ctrl-alt-del.target
+  ansible.builtin.command: mv /etc/systemd/system/ctrl-alt-del.target /etc/systemd/system/ctrl-alt-del.target.reboot-guard-orig
+  when:
+    - reboot_guard_cad.results[0].stat.exists
+    - reboot_guard_cad.results[0].stat.lnk_source | default('') != '/dev/null'
+    - not reboot_guard_cad.results[1].stat.exists
+  changed_when: true
+
+- name: Mask Ctrl-Alt-Del
+  ansible.builtin.file:
+    path: /etc/systemd/system/ctrl-alt-del.target
+    src: /dev/null
+    state: link
+    force: true
+  notify: Reboot-guard daemon-reload
+
+- name: Helper script
+  ansible.builtin.copy:
+    src: "{{ reboot_guard_helper_src }}"
+    dest: "{{ reboot_guard_helper_dest }}"
+    mode: "0755"
+
+- name: Log the install
+  ansible.builtin.command: logger -t reboot-guard -- "installed by ansible (files) for {{ lookup('env', 'USER') | default('ansible', true) }}"
+  changed_when: false

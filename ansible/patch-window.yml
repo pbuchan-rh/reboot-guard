@@ -1,0 +1,88 @@
+---
+# Patch window on guarded hosts:
+#   status pre-check -> (update) -> allow-once with a reason -> ansible.builtin.reboot -> guard is back.
+#
+# ansible-playbook -i inventory patch-window.yml -e target=web -e "patch_reason='CHG0012345'" [-e patch_update=true]
+#
+# - serial: hosts go one batch at a time (default 1), so a mistake does not take the whole group down at once.
+# - patch_update defaults to false: the play reboots without updating, so it can be tried safely first.
+# - A host that is NOT guarded at the start fails the pre-check (patch_require_guard=false to allow it; it is then
+#   rebooted without allow-once and stays unguarded).
+# - Without allow-once, ansible.builtin.reboot would not fail fast: the reboot is refused and the module waits
+#   reboot_timeout (default 600 s) before failing. The pre-check and the allow-once step avoid that.
+# - If anything fails after allow-once, the rescue takes the allow back, so the host is not left open.
+- name: Patch window with reboot-guard
+  hosts: "{{ target | default('all') }}"
+  become: true
+  gather_facts: false
+  serial: "{{ patch_serial | default(1) }}"
+  vars:
+    patch_update: false
+    patch_require_guard: true
+    patch_reason: "patch window"
+    patch_reboot_timeout: 900
+    patch_test_fail_after_allow: false   # test hook only: fail right after allow-once to exercise the rescue
+  tasks:
+    - name: Pre-check - reboot-guard status
+      ansible.builtin.include_role:
+        name: reboot_guard
+      vars:
+        reboot_guard_action: status
+
+    - name: Pre-check - host must be guarded, with no allow-once left from earlier
+      ansible.builtin.assert:
+        that: >-
+          reboot_guard_state == 'guarded' or
+          (not patch_require_guard | bool and reboot_guard_state == 'unguarded')
+        fail_msg: "{{ inventory_hostname }}: {{ reboot_guard_status_msg }} (expected GUARDED)"
+        quiet: true
+
+    - name: Patch and reboot
+      block:
+        # The point of a patch window. package (not dnf) so RHEL 7 (yum) works too.
+        - name: Update packages
+          ansible.builtin.package:  # noqa: package-latest
+            name: "*"
+            state: latest
+          when: patch_update | bool
+
+        - name: Allow one reboot
+          ansible.builtin.include_role:
+            name: reboot_guard
+          vars:
+            reboot_guard_action: allow_once
+            reboot_guard_reason: "{{ patch_reason }}"
+          when: reboot_guard_state == 'guarded'
+
+        - name: Test hook - fail after allow-once (patch_test_fail_after_allow=true; default false)
+          ansible.builtin.fail:
+            msg: "patch_test_fail_after_allow=true: forced failure after allow-once, to test the rescue"
+          when: patch_test_fail_after_allow | bool
+
+        - name: Reboot
+          ansible.builtin.reboot:
+            reboot_timeout: "{{ patch_reboot_timeout }}"
+            msg: "Reboot by patch-window.yml: {{ patch_reason }}"
+
+      rescue:
+        - name: Take the allow back (the reboot did not happen or did not finish)
+          ansible.builtin.include_role:
+            name: reboot_guard
+          vars:
+            reboot_guard_action: cancel
+
+        - name: Fail the host
+          ansible.builtin.fail:
+            msg: "{{ inventory_hostname }}: patch/reboot failed: {{ ansible_failed_result.msg | default('see above') }}"
+
+    - name: Post-check - status after the reboot
+      ansible.builtin.include_role:
+        name: reboot_guard
+      vars:
+        reboot_guard_action: status
+
+    - name: Post-check - the guard is back by itself
+      ansible.builtin.assert:
+        that: reboot_guard_state == 'guarded' or not patch_require_guard | bool
+        fail_msg: "{{ inventory_hostname }}: after reboot: {{ reboot_guard_status_msg }}"
+        quiet: true

@@ -1,0 +1,32 @@
+---
+# Red Hat KB 1580343 "Option 2" guard: reboot-guard.service RequiredBy=shutdown.target, re-enabled at boot by
+# start-reboot-guard.service. It blocks allow-once reboots too, so it has to go first.
+- name: Refuse to install next to the KB 1580343 guard
+  ansible.builtin.fail:
+    msg: "refused: old KB 1580343 guard present (reboot_guard_migrate_legacy=true removes it)"
+  when: not reboot_guard_migrate_legacy | bool
+
+- name: Disable the KB 1580343 services
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    enabled: false
+    state: stopped
+  loop: [start-reboot-guard.service, reboot-guard.service]
+  failed_when: false
+  when: reboot_guard_legacy | bool
+
+- name: Remove the KB 1580343 unit files
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ item }}"
+    state: absent
+  loop: [start-reboot-guard.service, reboot-guard.service]
+  notify: Reboot-guard daemon-reload
+
+# The KB kit's rguard-install.sh appends " REBOOT-GUARD ACTIVE " to these. Only that exact line goes.
+- name: Remove the KB 1580343 banner lines
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    regexp: '^ REBOOT-GUARD ACTIVE $'
+    state: absent
+  loop: [/etc/issue, /etc/issue.net, /etc/motd]
+  notify: Reboot-guard restorecon banners

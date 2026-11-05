@@ -1,0 +1,9 @@
+---
+- name: Remove reboot-guard (copied files or RPM)
+  hosts: "{{ target | default('all') }}"
+  become: true
+  gather_facts: false
+  roles:
+    - role: reboot_guard
+      vars:
+        reboot_guard_action: uninstall

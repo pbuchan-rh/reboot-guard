@@ -1,0 +1,11 @@
+---
+galaxy_info:
+  role_name: reboot_guard
+  author: Peter Buchan
+  description: Install, remove and allow-once the reboot-guard systemd drop-ins
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: EL
+      versions: ["7", "8", "9", "10"]
+dependencies: []

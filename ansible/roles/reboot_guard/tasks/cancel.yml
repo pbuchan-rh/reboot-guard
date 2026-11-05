@@ -1,0 +1,12 @@
+---
+- name: Remove the allow-once drop-ins
+  ansible.builtin.shell: |
+    n=0
+    for f in /run/systemd/system/*.d/99-reboot-guard-allow.conf; do
+      [ -e "$f" ] || continue
+      rm -f "$f"; rmdir "$(dirname "$f")" 2>/dev/null; n=$((n + 1))
+    done
+    [ "$n" -gt 0 ] && systemctl daemon-reload && logger -t reboot-guard -- "allow-once cancelled by ansible"
+    echo "$n"
+  register: reboot_guard_cancel
+  changed_when: reboot_guard_cancel.stdout_lines[-1] != '0'

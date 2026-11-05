@@ -1,0 +1,18 @@
+---
+# Dispatch on reboot_guard_action. Every action ends with a fresh status in reboot_guard_state.
+- name: Check reboot_guard_action
+  ansible.builtin.assert:
+    that: reboot_guard_action in ['install', 'uninstall', 'allow_once', 'cancel', 'status']
+    fail_msg: "reboot_guard_action must be install, uninstall, allow_once, cancel or status (got {{ reboot_guard_action }})"
+    quiet: true
+
+- name: Facts about the host
+  ansible.builtin.include_tasks: facts.yml
+
+- name: "Run {{ reboot_guard_action }}"
+  ansible.builtin.include_tasks: "{{ reboot_guard_action }}.yml"
+  when: reboot_guard_action != 'status'
+
+- name: Status (install and uninstall check their own)
+  ansible.builtin.include_tasks: status.yml
+  when: reboot_guard_action not in ['install', 'uninstall']

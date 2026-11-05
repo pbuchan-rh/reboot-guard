@@ -1,0 +1,33 @@
+---
+# One reboot/shutdown allowed; the guard comes back at the next boot (and after a soft-reboot).
+- name: A reason is required
+  ansible.builtin.assert:
+    that: reboot_guard_reason | default('', true) | length > 0
+    fail_msg: "allow_once needs reboot_guard_reason"
+    quiet: true
+
+- name: The KB 1580343 guard would still block the reboot
+  ansible.builtin.fail:
+    msg: "refused: old KB 1580343 guard would still block (reboot_guard_migrate_legacy=true)"
+  when: reboot_guard_legacy | bool
+
+- name: Find the helper
+  ansible.builtin.shell: |
+    for h in {{ reboot_guard_helper_dest }} /usr/bin/reboot-guard {{ reboot_guard_helper_old }}; do
+      [ -x "$h" ] && { echo "$h"; exit 0; }
+    done
+    exit 1
+  register: reboot_guard_helper
+  changed_when: false
+  failed_when: reboot_guard_helper.rc != 0
+
+- name: Reboot-guard allow-once
+  ansible.builtin.command:
+    argv:
+      - "{{ reboot_guard_helper.stdout }}"
+      - allow-once
+      - --reason
+      - "{{ reboot_guard_reason }} [{{ 'AAP job ' ~ tower_job_id if tower_job_id is defined else 'ansible' }}]"
+  register: reboot_guard_allow
+  changed_when: true
+  failed_when: reboot_guard_allow.rc != 0

@@ -1,0 +1,24 @@
+---
+- name: Look for bootc, the RPM, the image guard, the KB 1580343 guard
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - /run/ostree-booted
+    - /usr/lib/systemd/system/reboot.target.d/50-reboot-guard.conf
+    - /etc/systemd/system/reboot-guard.service
+    - /etc/systemd/system/start-reboot-guard.service
+  register: reboot_guard_stat
+
+# rpm -q, not package_facts: one package to check, and it must work without gathered facts.
+- name: Is the RPM installed
+  ansible.builtin.command: rpm -q reboot-guard  # noqa: command-instead-of-module
+  register: reboot_guard_rpmq
+  changed_when: false
+  failed_when: false
+
+- name: Set reboot_guard facts
+  ansible.builtin.set_fact:
+    reboot_guard_bootc: "{{ reboot_guard_stat.results[0].stat.exists }}"
+    reboot_guard_usr_guard: "{{ reboot_guard_stat.results[1].stat.exists }}"
+    reboot_guard_legacy: "{{ reboot_guard_stat.results[2].stat.exists or reboot_guard_stat.results[3].stat.exists }}"
+    reboot_guard_rpm_installed: "{{ reboot_guard_rpmq.rc == 0 }}"

@@ -1,0 +1,7 @@
+# Copy to inventory and edit.
+[guarded]
+web01.example.com
+db01.example.com
+
+[guarded:vars]
+ansible_user=admin

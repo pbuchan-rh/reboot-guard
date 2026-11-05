@@ -1,0 +1,38 @@
+---
+- name: Image mode (bootc) - the guard belongs in the image
+  ansible.builtin.debug:
+    msg: "image mode: {{ 'GUARDED (image)' if reboot_guard_usr_guard else 'NOT GUARDED; add the guard to the Containerfile' }}"
+  when: reboot_guard_bootc | bool
+
+- name: Install
+  when: not reboot_guard_bootc | bool
+  block:
+    - name: Legacy KB 1580343 guard
+      ansible.builtin.include_tasks: legacy.yml
+      when: reboot_guard_legacy | bool or reboot_guard_migrate_legacy | bool
+
+    - name: Install from files
+      ansible.builtin.include_tasks: install_files.yml
+      when: reboot_guard_method == 'files'
+
+    - name: Install the RPM
+      ansible.builtin.include_tasks: install_rpm.yml
+      when: reboot_guard_method == 'rpm'
+
+    - name: Remove the old helper copy
+      ansible.builtin.file:
+        path: "{{ reboot_guard_helper_old }}"
+        state: absent
+
+    - name: Reload systemd now (status below must see the guard)
+      ansible.builtin.meta: flush_handlers
+
+- name: The guard must be on
+  ansible.builtin.include_tasks: status.yml
+
+- name: Check
+  ansible.builtin.assert:
+    that: reboot_guard_state == 'guarded'
+    fail_msg: "after install: {{ reboot_guard_status_msg }}"
+    quiet: true
+  when: not reboot_guard_bootc | bool
