@@ -67,7 +67,7 @@ if [ -d /run/systemd/system ]; then
     systemctl daemon-reexec >/dev/null 2>&1 || :   # picks up CtrlAltDelBurstAction=none
 fi
 if [ -e /etc/systemd/system/reboot-guard.service ] || [ -e /etc/systemd/system/shutdown.target.requires/reboot-guard.service ]; then
-    echo "reboot-guard: warning: old KB 1580343 guard found; blocks allow-once too; remove it first (ansible/README.md: reboot_guard_migrate_legacy)" >&2
+    echo "reboot-guard: warning: old KB 1580343 guard found; it blocks allow-once too" >&2
 fi
 if [ -e /etc/systemd/system/reboot.target.d/50-reboot-guard.conf ]; then
     echo "reboot-guard: note: copied guard files in /etc override this package" >&2

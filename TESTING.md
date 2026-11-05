@@ -2,10 +2,15 @@
 
 ## Results
 
-RHEL 10.2 = package mode. refused = host stayed up (boot_id and `SoftRebootsCount` unchanged). n/a = unit or verb
-does not exist on that release. - = not tested. `tests/matrix.sh`, RPM install and `patch-window.yml` rows: the
-v2.0.0 RPM (release or release candidate, same files), 2026-11-05; KB 1580343 migration: re-tested on 10.2 for the
-current role; other rows: earlier rounds, same guard files.
+Package mode on RHEL 7.9, 8.10, 9.6 and 10.2. Image mode: TBD ([DESIGN.md](DESIGN.md#image-mode-tbd)).
+
+- **refused**: the host stayed up (same boot ID and soft-reboot count)
+- **pass**: worked as designed
+- **gap**: not blocked (see [Known gaps](README.md#known-gaps))
+- **n/a**: not on that release · **-**: not tested
+
+Matrix, RPM and patch-window rows: v2.0.0 RPM, 2026-11-05. KB 1580343 migration: re-tested on 10.2 with the current
+role. Other rows: earlier runs, same guard files.
 
 | check | 7.9 | 8.10 | 9.6 | 10.2 |
 |---|---|---|---|---|
@@ -36,7 +41,6 @@ current role; other rows: earlier rounds, same guard files.
 | `tests/matrix.sh` (PASS/FAIL/SKIP) | 36/0/1 | 39/0/1 | 39/0/1 | 42/0/1 |
 | `tests/matrix.sh --destructive` | 40/0/2 | 43/0/2 | 43/0/2 | 47/0/1 |
 
-Image mode (RHEL 10.2 bootc): preliminary, TBD. See [DESIGN.md](DESIGN.md#image-mode-tbd).
 
 ## Running the tests
 

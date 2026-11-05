@@ -123,7 +123,7 @@ status() {
             [ -f "$ALLOW_DIR/$u.d/$ALLOW_FILE" ] && allow=$((allow + 1))
         fi
     done
-    if [ -e "$LEGACY" ]; then echo "GUARDED by old KB 1580343 service (see ansible/README.md: reboot_guard_migrate_legacy)"; return 0; fi
+    if [ -e "$LEGACY" ]; then echo "GUARDED by old KB 1580343 service"; return 0; fi
     if [ "$open" -eq 0 ] && [ "$guarded" -gt 0 ]; then
         local s=GUARDED
         usr_guard && s="$s ($(usr_source))"
@@ -174,7 +174,7 @@ case "${1:-help}" in
         reason=$(printf '%s' "$reason" | tr '\n' ' ')
         [ -n "${reason// /}" ] || { echo "$TAG: allow-once needs --reason TEXT" >&2; exit 2; }
         need_root
-        if [ -e "$LEGACY" ]; then echo "$TAG: refused: old KB 1580343 guard would still block (see ansible/README.md: reboot_guard_migrate_legacy)" >&2; exit 1; fi
+        if [ -e "$LEGACY" ]; then echo "$TAG: refused: old KB 1580343 guard would still block" >&2; exit 1; fi
         write_dropins "$ALLOW_DIR" "$ALLOW_FILE" no "allow-once: $reason (by $(who_am))"
         # soft-reboot (RHEL 10) keeps /run, so it would not consume the allow: remove it on the way down.
         printf '[Service]\nExecStartPre=-/bin/sh -c "rm -f %s/*.d/%s"\n' "$ALLOW_DIR" "$ALLOW_FILE" \
