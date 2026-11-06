@@ -7,7 +7,6 @@ the wrong host or too many hosts; root can still reboot on purpose ([Known gaps]
 [DESIGN.md](DESIGN.md); results: [TESTING.md](TESTING.md).
 
 ## Platforms
-
 | RHEL | systemd | units guarded |
 |---|---|---|
 | 7.9 | 219 | 8: reboot, poweroff, halt, kexec (`.target` + `systemd-*.service`) |
@@ -18,7 +17,15 @@ the wrong host or too many hosts; root can still reboot on purpose ([Known gaps]
 
 ## Install
 Pick one per host; do not mix the RPM and copied files.
-### RPM
+### COPR (recommended)
+```sh
+sudo dnf copr enable pbuchan-rh/reboot-guard
+sudo dnf install reboot-guard     # RHEL 7: yum
+# RHEL 7 (no copr plugin): sudo curl -fsSLo /etc/yum.repos.d/reboot-guard.repo https://copr.fedorainfracloud.org/coprs/pbuchan-rh/reboot-guard/repo/rhel-7/
+```
+Signed (key 0CF2 893F 8B6A B54A 884E 32F8 03F9 8BF9 D1B6 937D), no `--nogpgcheck`. RSA 2048: the FUTURE crypto
+policy rejects it, use the RPM. Update: `sudo dnf update`. Satellite: sync the COPR repo and key as a custom product.
+### RPM (offline / disconnected)
 ```sh
 # noarch, RHEL 7-10. Drop-ins in /usr/lib; rpm -V shows edits. Build it yourself: make rpm sums
 u=https://github.com/pbuchan-rh/reboot-guard/releases/download/v2.0.2
@@ -50,7 +57,6 @@ sudo ln -sfn /dev/null $c && sudo systemctl daemon-reload && sudo systemctl daem
 ```
 
 ## Patch window: allow one reboot
-
 ```sh
 sudo reboot-guard allow-once --reason "CHG0012345 patching"   # reason required, logged with the user
 sudo dnf -y update && sudo systemctl reboot     # allowed once; guarded again after boot
@@ -58,7 +64,6 @@ sudo reboot-guard cancel                        # or take the allow back
 ```
 
 ## Status and removal
-
 ```sh
 sudo reboot-guard status       # exit 0 GUARDED, 1 NOT GUARDED, 2 ALLOW-ONCE; others 0 ok, 1 refused, 2 usage, 3 not root
 journalctl -t reboot-guard     # install / uninstall / allow-once, with user and reason
@@ -78,7 +83,6 @@ sudo systemctl daemon-reload && sudo systemctl daemon-reexec
 ```
 
 ## Known gaps
-
 - Still reboot: `systemctl reboot --force`/`-ff`, `reboot -f`, `kexec -e`, signals to PID 1, `/proc/sysrq-trigger`,
   hypervisor/BMC power off or reset, kernel panic auto-reboot, watchdogs. Fix with account design (no full root).
 - Refused: ACPI shutdown (power button) and qemu-guest-agent `guest-shutdown` (tested on RHEL 10; not verified on 7-9).
@@ -87,12 +91,10 @@ sudo systemctl daemon-reload && sudo systemctl daemon-reexec
 - `shutdown -r +N` is refused when it fires, but `/run/nologin` blocks non-root logins during the countdown.
 
 ## Automation
-
 - `ansible.builtin.reboot` on a guarded host fails only at `reboot_timeout` (600 s). Check status first.
 - `ansible/` role: install (files or RPM), uninstall, status, allow-once, patch-window play.
 - `tests/matrix.sh host` checks a host over ssh. See [ansible/README.md](ansible/README.md).
 
 ## License and credits
-
 MIT ([LICENSE](LICENSE)). Inspired by [ryran/reboot-guard](https://github.com/ryran/reboot-guard) (GPL-3) and
 Red Hat [KB 1580343](https://access.redhat.com/solutions/1580343); no code copied.

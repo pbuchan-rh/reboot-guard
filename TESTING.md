@@ -12,6 +12,8 @@ Package mode on RHEL 7.9, 8.10, 9.6 and 10.2; image mode (bootc) on 10.2 with th
 v2.0.2 RPM, 2026-11-05: upgrade from 2.0.1 (`sha256sum -c`, `rpm -V`) and `tests/matrix.sh` on all five.
 `--destructive` and `patch-window.yml`: 10.2 on v2.0.1, others v2.0.0 (2026-11-05); other RPM rows: v2.0.0.
 KB 1580343 migration: re-tested on 10.2 with the current role. Other rows: earlier runs, same guard files.
+COPR 2.0.2-1 (builds 11268666, 11268679), 2026-11-05: GitHub RPM -> `dnf reinstall` from COPR on the four package-mode hosts,
+then `tests/matrix.sh` (same counts).
 Image column: v2.0.2 RPM in the Containerfile via `bootc upgrade` (`rpm -V --nomtime`); other image rows: v2.0.1.
 
 | check | 7.9 | 8.10 | 9.6 | 10.2 | 10.2 image |
@@ -35,6 +37,10 @@ Image column: v2.0.2 RPM in the Containerfile via `bootc upgrade` (`rpm -V --nom
 | `kill -s SIGRTMIN+5 1` | - | - | - | gap | - |
 | RPM: `sha256sum -c` (README form), helper uninstall -> install, `rpm -V` clean | pass | pass | pass | pass | - |
 | RPM upgrade / reinstall / erase | pass | pass | pass | pass | - |
+| COPR enable: `dnf copr enable pbuchan-rh/reboot-guard` (epel-N repo); 7.9: no yum-plugin-copr, repo file | pass | pass | pass | pass | - |
+| COPR install: key import fingerprint, `rpm -K` signatures OK, from COPR repo, `rpm -V` clean, mask kept | pass | pass | pass | pass | - |
+| COPR install with `localpkg_gpgcheck=1` (STIG), no `--nogpgcheck` | - | - | - | pass | - |
+| COPR signature under FUTURE (`RPM_SEQUOIA_CRYPTO_POLICY`, system policy unchanged): RSA 2048 | - | - | - | gap | - |
 | RPM upgrade keeps the Ctrl-Alt-Del mask and original-link backup (7.9: no /etc link to back up) | pass | pass | pass | pass | pass |
 | RPM erase restores original Ctrl-Alt-Del link | pass | pass | pass | pass | - |
 | role: install (files, RPM), re-run `changed=0`, uninstall | pass | pass | pass | pass | n/a |
