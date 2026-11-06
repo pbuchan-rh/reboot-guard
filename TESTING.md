@@ -33,7 +33,7 @@ Image column: v2.0.1 RPM in the Containerfile, 2026-11-05 (`rpm -V --nomtime`).
 | `cancel`, `status` exit codes, journal reason | pass | pass | pass | pass | pass |
 | `systemctl reboot --force` | - | - | gap | gap | - |
 | `kill -s SIGRTMIN+5 1` | - | - | - | gap | - |
-| RPM: `sha256sum -c` (README form), helper uninstall -> install, `rpm -V` clean | pass | pass | pass | pass | pass |
+| RPM: `sha256sum -c` (README form), helper uninstall -> install, `rpm -V` clean | pass | pass | pass | pass | - |
 | RPM upgrade / reinstall / erase | pass | pass | pass | pass | - |
 | RPM upgrade keeps the Ctrl-Alt-Del mask and original-link backup (7.9: no /etc link to back up) | pass | pass | pass | pass | pass |
 | RPM erase restores original Ctrl-Alt-Del link | pass | pass | pass | pass | - |
@@ -49,8 +49,8 @@ Image column: v2.0.1 RPM in the Containerfile, 2026-11-05 (`rpm -V --nomtime`).
 | image: upgrade keeps the `/etc` mask; image without the RPM: no leftovers, Ctrl-Alt-Del reboots | n/a | n/a | n/a | n/a | pass |
 | image: helper/role `install` reports, `uninstall` refuses | n/a | n/a | n/a | n/a | pass |
 
-Image mode, SELinux enforcing: no AVCs from the guard; each refused legacy command (`reboot`, `init 6`, ...) logs
-`systemd-initctl` denials (its `/run/initctl` fallback, refused either way).
+SELinux enforcing: no AVCs from the guard. Image mode only: each refused legacy command (`reboot`, `init 6`, ...)
+logs `systemd-initctl` denials (its `/run/initctl` fallback, refused either way); package mode 10.2 logs none.
 
 ## Running the tests
 
