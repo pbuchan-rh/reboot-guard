@@ -1,6 +1,6 @@
 # Optional RPM build. The plain files in files/ and bin/ stay the product; the RPM is built from them.
 # make tarball : git archive of HEAD (committed content only) -> rpm/reboot-guard-VERSION.tar.gz
-# make check : the helper writes the same drop-ins as files/ (tests/drift.sh; REBOOT_GUARD_ROOT=dir = install into dir, test only)
+# make check : the helper writes the same drop-ins as files/ (tests/drift.sh), image-mode install refuses (tests/image.sh; REBOOT_GUARD_ROOT=dir = install into dir, test only)
 # make srpm / make rpm : rpmbuild in ~/rpmbuild (needs rpm-build); RELEASE=2 bumps the release.
 #   BUILDHOST=name sets the RPM's Build Host (default localhost: no build machine hostname in the header);
 #   RPMBUILD_FLAGS='...' adds rpmbuild options.
@@ -19,7 +19,7 @@ SUMS    := $(TOPDIR)/SHA256SUMS
 
 .PHONY: check tarball srpm rpm sums clean
 check:
-	tests/drift.sh
+	tests/drift.sh && tests/image.sh
 
 tarball:
 	git archive --format=tar.gz --prefix=$(NAME)-$(VERSION)/ -o $(TARBALL) HEAD

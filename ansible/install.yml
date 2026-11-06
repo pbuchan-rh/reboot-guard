@@ -1,5 +1,5 @@
 ---
-# ansible-playbook -i inventory install.yml [-e reboot_guard_method=rpm -e reboot_guard_rpm_src=/path/reboot-guard-2.0.1-1.noarch.rpm]
+# ansible-playbook -i inventory install.yml [-e reboot_guard_method=rpm -e reboot_guard_rpm_src=/path/reboot-guard-2.0.2-1.noarch.rpm]
 - name: Install reboot-guard
   hosts: "{{ target | default('all') }}"
   become: true

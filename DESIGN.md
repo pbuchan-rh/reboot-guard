@@ -59,8 +59,8 @@ power operations, panic auto-reboot, watchdogs. Legacy commands exit 0 while ref
 
 Tested on RHEL 10.2 bootc with the RPM in the Containerfile. The guard is in `/usr/lib` (read-only on the host); the
 Ctrl-Alt-Del mask and its backup are image `/etc` files and follow the `/etc` 3-way merge on upgrades; an image without
-the RPM removes all of it. allow-once works through `/run`. The helper and role `install` only report; `uninstall`
-refuses.
+the RPM removes all of it. allow-once works through `/run`. The helper and role `install` only report (helper: refuses
+if the image has no guard); `uninstall` refuses.
 
 - `bootc upgrade --apply`, `bootc switch --apply`, `bootc rollback --apply` and `bootc-fetch-apply-updates.service`
   stage the update, have their reboot refused, and wait forever; meanwhile every other `bootc` command blocks on the
@@ -74,8 +74,8 @@ refuses.
 
 ```dockerfile
 FROM registry.redhat.io/rhel10/rhel-bootc
-COPY reboot-guard-2.0.1-1.noarch.rpm /tmp/
-RUN dnf -y install /tmp/reboot-guard-2.0.1-1.noarch.rpm && rm -f /tmp/*.rpm && dnf clean all
+COPY reboot-guard-2.0.2-1.noarch.rpm /tmp/
+RUN dnf -y install /tmp/reboot-guard-2.0.2-1.noarch.rpm && rm -f /tmp/*.rpm && dnf clean all
 # or, without the RPM (built and linted, not booted):
 COPY files/etc/systemd/system/ /usr/lib/systemd/system/
 COPY files/etc/systemd/system.conf.d/ /usr/lib/systemd/system.conf.d/

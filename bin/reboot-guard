@@ -7,7 +7,7 @@
 # Other commands exit: 0 ok, 1 refused, 2 bad usage, 3 not root.
 
 set -u
-VERSION=2.0.1
+VERSION=2.0.2
 # Targets, plus the services they pull in: `systemctl start systemd-reboot.service` skips the target (found on RHEL 10).
 # exit.target: `systemctl exit` powers off a VM/host (systemd 257, found on RHEL 10).
 # Pulled in as a dependency of an allowed target, a guarded service still starts (RefuseManualStart = manual only).
@@ -146,6 +146,7 @@ case "${1:-help}" in
         [ $# -eq 1 ] || usage
         need_root
         if ! usr_guard; then
+            [ -e "$R/run/ostree-booted" ] && { echo "$TAG: refused: image mode: install the RPM in the Containerfile" >&2; exit 1; }
             self_copy
             write_dropins "$GUARD_DIR" "$GUARD_FILE" yes; cad_guard; reload
             log "installed by $(who_am)"

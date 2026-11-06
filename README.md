@@ -21,16 +21,16 @@ Pick one per host; do not mix the RPM and copied files.
 ### RPM
 ```sh
 # noarch, RHEL 7-10. Drop-ins in /usr/lib; rpm -V shows edits. Build it yourself: make rpm sums
-u=https://github.com/pbuchan-rh/reboot-guard/releases/download/v2.0.1
-curl -fsSL -O $u/reboot-guard-2.0.1-1.noarch.rpm -O $u/SHA256SUMS && sha256sum -c --ignore-missing SHA256SUMS
-sudo dnf install ./reboot-guard-2.0.1-1.noarch.rpm   # RHEL 7: yum; hash with: grep noarch SHA256SUMS | sha256sum -c
+u=https://github.com/pbuchan-rh/reboot-guard/releases/download/v2.0.2
+curl -fsSL -O $u/reboot-guard-2.0.2-1.noarch.rpm -O $u/SHA256SUMS && sha256sum -c --ignore-missing SHA256SUMS
+sudo dnf install ./reboot-guard-2.0.2-1.noarch.rpm   # RHEL 7: yum; hash with: grep noarch SHA256SUMS | sha256sum -c
 # localpkg_gpgcheck=1 (STIG): add --nogpgcheck; the RPM is unsigned, the hash check is the integrity check
 ```
 ### Image mode
 ```dockerfile
 FROM registry.redhat.io/rhel10/rhel-bootc
-COPY reboot-guard-2.0.1-1.noarch.rpm /tmp/
-RUN dnf -y install /tmp/reboot-guard-2.0.1-1.noarch.rpm && rm -f /tmp/*.rpm && dnf clean all
+COPY reboot-guard-2.0.2-1.noarch.rpm /tmp/
+RUN dnf -y install /tmp/reboot-guard-2.0.2-1.noarch.rpm && rm -f /tmp/*.rpm && dnf clean all
 ```
 Update: `bootc upgrade` (stage), allow-once, reboot. `--apply` and the auto-update timer wait forever on a guarded
 host: `systemctl mask --now bootc-fetch-apply-updates.timer`. See [DESIGN.md](DESIGN.md#image-mode).
