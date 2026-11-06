@@ -20,8 +20,10 @@ Pick one per host; do not mix the RPM and copied files.
 ### COPR (recommended)
 ```sh
 sudo dnf copr enable pbuchan-rh/reboot-guard
-sudo dnf install reboot-guard     # RHEL 7: yum
-# RHEL 7 (no copr plugin): sudo curl -fsSLo /etc/yum.repos.d/reboot-guard.repo https://copr.fedorainfracloud.org/coprs/pbuchan-rh/reboot-guard/repo/rhel-7/
+sudo dnf install reboot-guard
+# RHEL 7 (no copr plugin):
+# sudo curl -fsSLo /etc/yum.repos.d/reboot-guard.repo https://copr.fedorainfracloud.org/coprs/pbuchan-rh/reboot-guard/repo/rhel-7/
+# sudo yum install reboot-guard
 ```
 Signed (key 0CF2 893F 8B6A B54A 884E 32F8 03F9 8BF9 D1B6 937D), no `--nogpgcheck`. RSA 2048: the FUTURE crypto
 policy rejects it, use the RPM. Update: `sudo dnf update`. Satellite: sync the COPR repo and key as a custom product.
