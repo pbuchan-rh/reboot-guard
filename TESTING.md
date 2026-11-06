@@ -9,10 +9,10 @@ Package mode on RHEL 7.9, 8.10, 9.6 and 10.2; image mode (bootc) on 10.2 with th
 - **gap**: not blocked (see [Known gaps](README.md#known-gaps))
 - **n/a**: not on that release · **-**: not tested
 
-v2.0.1 RPM, 2026-11-05: upgrade from 2.0.0 (`sha256sum -c`, `rpm -V`) and `tests/matrix.sh` on all four;
-`--destructive` and `patch-window.yml` on 10.2. Other matrix, RPM and patch-window rows: v2.0.0 RPM, same day.
+v2.0.2 RPM, 2026-11-05: upgrade from 2.0.1 (`sha256sum -c`, `rpm -V`) and `tests/matrix.sh` on all five.
+`--destructive` and `patch-window.yml`: 10.2 on v2.0.1, others v2.0.0 (2026-11-05); other RPM rows: v2.0.0.
 KB 1580343 migration: re-tested on 10.2 with the current role. Other rows: earlier runs, same guard files.
-Image column: v2.0.1 RPM in the Containerfile, 2026-11-05 (`rpm -V --nomtime`).
+Image column: v2.0.2 RPM in the Containerfile via `bootc upgrade` (`rpm -V --nomtime`); other image rows: v2.0.1.
 
 | check | 7.9 | 8.10 | 9.6 | 10.2 | 10.2 image |
 |---|---|---|---|---|---|
@@ -47,7 +47,8 @@ Image column: v2.0.1 RPM in the Containerfile, 2026-11-05 (`rpm -V --nomtime`).
 | image: `bootc upgrade --apply`, `rollback --apply`, `bootc-fetch-apply-updates.service` (wait forever) | n/a | n/a | n/a | n/a | refused |
 | image: allow-once -> reboot into the staged update / rollback -> guarded | n/a | n/a | n/a | n/a | pass |
 | image: upgrade keeps the `/etc` mask; image without the RPM: no leftovers, Ctrl-Alt-Del reboots | n/a | n/a | n/a | n/a | pass |
-| image: helper/role `install` reports, `uninstall` refuses | n/a | n/a | n/a | n/a | pass |
+| image: helper/role `install` reports, `uninstall` refuses (guard in the image) | n/a | n/a | n/a | n/a | pass |
+| image: helper `install`, no guard in the image (mount namespace): refused (exit 1), nothing written | n/a | n/a | n/a | n/a | pass |
 
 SELinux enforcing: no AVCs from the guard. Image mode only: each refused legacy command (`reboot`, `init 6`, ...)
 logs `systemd-initctl` denials (its `/run/initctl` fallback, refused either way); package mode 10.2 logs none.
@@ -55,7 +56,7 @@ logs `systemd-initctl` denials (its `/run/initctl` fallback, refused either way)
 ## Running the tests
 
 ```sh
-make check                              # helper writes the same drop-ins as files/ (tests/drift.sh)
+make check                              # drop-ins == files/ (tests/drift.sh); image-mode install (tests/image.sh)
 shellcheck bin/reboot-guard tests/*.sh
 tests/matrix.sh user@host               # non-destructive: every refusal, allow-once create/cancel
 tests/matrix.sh --expect-unguarded user@host               # after uninstall / rpm erase
